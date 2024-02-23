@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Exercício do Alien</title>
+    <script src="https://cdn.jsdelivr.net/npm/phaser@3.55.2/dist/phaser.min.js"></script>
+    <style>
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+        }
+    </style>
+</head>
+
+<body>
+    <script>
+        // Dimensões do jogo
+        const larguraJogo = 700;
+        const alturaJogo = 850;
+
+        // Configurações do jogo
+        const jogoConfig = {
+            type: Phaser.AUTO,
+            width: larguraJogo,
+            height: alturaJogo,
+
+            physics: {
+                default: 'arcade',
+                arcade: {
+                    gravity: { y: 300 },
+                    debug: true
+                }
+            },
+
+            scene: {
+                preload: preload,
+                create: create,
+                update: update
+            }
+        };
+
+        // Instância do jogo
+        const jogo = new Phaser.Game(jogoConfig);
+
+        // Variáveis do jogo
+        var jogador;
+        var teclado;
+        var turboFogo;
+        var plataforma;
+        var plataforma2;
+        var moeda;
+        var pontuacao = 0;
+        var textoPontuacao;
+        var posiX = [100, 400, 700];
+        var posiY = [500, 450, 600];
+
+        // Pré-carregamento de recursos
+        function preload() {
+            this.load.image('background', 'assets/bg.png');
+            this.load.image('player', 'assets/alienigena.png');
+            this.load.image('turbo_nave', 'assets/turbo.png');
+            this.load.image('plataforma_tijolo', 'assets/tijolos.png');
+            this.load.image('moeda', 'assets/moeda.png');
+        }
+
+        // Função de criação de elementos do jogo
+        function create() {
+            // Adiciona imagem de fundo
+            this.add.image(larguraJogo / 2, alturaJogo / 2, 'background');
+
+            // Inicializa o sprite do fogo e o torna invisível
+            turboFogo = this.add.sprite(0, 0, 'turbo_nave');
+            turboFogo.setVisible(false);
+
+            // Inicializa o sprite do jogador
+            jogador = this.physics.add.sprite(larguraJogo / 2, 0, 'player');
+            jogador.setCollideWorldBounds(true);
+            teclado = this.input.keyboard.createCursorKeys();
+
+            // Adiciona plataforma estática
+            plataforma1 = this.physics.add.staticImage(posiX[0], posiY[1], 'plataforma_tijolo');
+            this.physics.add.collider(jogador, plataforma1);
+
+            //Adiciona a segunda plataforma estática
+            plataforma2 = this.physics.add.staticImage(posiX[1], posiY[2], 'plataforma_tijolo');
+            this.physics.add.collider(jogador, plataforma2);
+
+
+            // Inicializa o sprite da moeda
+            moeda = this.physics.add.sprite(larguraJogo / 2, 0, 'moeda');
+            moeda.setCollideWorldBounds(true);
+            moeda.setBounce(0.7);
+            this.physics.add.collider(moeda, plataforma);
+            this.physics.add.collider(moeda, plataforma2);
+
+            // Inicializa o texto de pontuação
+            textoPontuacao = this.add.text(50, 50, 'Moedas:' + pontuacao, { fontSize: '45px', fill: '#495613' });
+
+            // Adiciona a detecção de sobreposição entre o jogador e a moeda
+            this.physics.add.overlap(jogador, moeda, function () {
+
+                moeda.setVisible(false);
+                var posicaoMoeda_Y = Phaser.Math.RND.between(50, 650);
+                moeda.setPosition(posicaoMoeda_Y, 100);
+                pontuacao += 1;
+                textoPontuacao.setText('Moedas:' + pontuacao);
+                moeda.setVisible(true);
+            });
+        }
+
+        // Função de atualização do jogo
+        function update() {
+            // Movimento do jogador
+            if (teclado.left.isDown) {
+                jogador.setVelocityX(-150);
+            } else if (teclado.right.isDown) {
+                jogador.setVelocityX(150);
+            } else {
+                jogador.setVelocityX(0);
+            }
+
+            // Movimento para cima com ativação do turbo
+            if (teclado.up.isDown) {
+                jogador.setVelocityY(-150);
+                ativarTurbo();
+            } else {
+                semTurbo();
+            }
+            // Atualiza a posição do sprite do turbo
+            turboFogo.setPosition(jogador.x, jogador.y + jogador.height / 2);
+        }
+
+        // Função para ativar o turbo
+        function ativarTurbo() {
+            turboFogo.setVisible(true);
+        }
+
+        // Função para desativar o turbo
+        function semTurbo() {
+            turboFogo.setVisible(false);
+        }
+
+    </script>
+</body>
+
+</html>
